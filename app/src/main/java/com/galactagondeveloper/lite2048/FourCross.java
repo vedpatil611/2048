@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,7 +19,7 @@ public class FourCross extends AppCompatActivity {
     TextView[][] textView = new TextView[4][4];
     float x1, y1, x2, y2;
     int i,j,k;
-    boolean changed=true;
+    boolean changed=true, win=false;
     boolean[][] mergeChecker = new boolean[4][4];
 
     @Override
@@ -47,6 +48,42 @@ public class FourCross extends AppCompatActivity {
             changed=false;
         }
     }
+    void checkEndGame() {
+        for(i=0;i<4;i++) {
+            for(j=0;j<4;j++) {
+                if(number[i][j] == -1) {
+                    return;
+                }
+            }
+            for(j=0;j<3;j++) {
+                if(number[i][j] == number[i][j+1]) {
+                    return;
+                }
+            }
+            for(j=0;j<3;j++) {
+                if(number[j][i] == number[j+1][i]) {
+                    return;
+                }
+            }
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Game over")
+                .setPositiveButton("Restart", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        startActivity(new Intent(FourCross.this, FourCross.class));
+                        finish();
+                    }
+                })
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        startActivity(new Intent(FourCross.this, MainActivity.class));
+                        finish();
+                    }
+                })
+                .show();
+    }
     public void updateText() {
         for(i=0;i<4;i++) {
             for(j=0;j<4;j++) {
@@ -72,14 +109,15 @@ public class FourCross extends AppCompatActivity {
                             number[i][k-1] = -1;
                             changed = true;
                             mergeChecker[i][k] = true;
+                            if(!win && number[i][k] == 2048) {
+                                Toast.makeText(this, "You win", Toast.LENGTH_LONG).show();
+                                win = true;
+                            }
                         }
                     }
                 }
             }
         }
-        setRandom();
-        updateText();
-        setBoolFalse();
     }
     public void onLeft() {
         for(i=0;i<4;i++) {
@@ -95,14 +133,15 @@ public class FourCross extends AppCompatActivity {
                             number[i][k + 1] = -1;
                             changed=true;
                             mergeChecker[i][k] = true;
+                            if(!win && number[i][k] == 2048) {
+                                Toast.makeText(this, "You win", Toast.LENGTH_LONG).show();
+                                win = true;
+                            }
                         }
                     }
                 }
             }
         }
-        setRandom();
-        updateText();
-        setBoolFalse();
     }
     public void onUp() {
         for(i=0;i<4;i++) {
@@ -118,14 +157,15 @@ public class FourCross extends AppCompatActivity {
                             number[k+1][i] = -1;
                             changed=true;
                             mergeChecker[k][i] = true;
+                            if(!win && number[k][i] == 2048) {
+                                Toast.makeText(this, "You win", Toast.LENGTH_LONG).show();
+                                win = true;
+                            }
                         }
                     }
                 }
             }
         }
-        setRandom();
-        updateText();
-        setBoolFalse();
     }
     public void onDown() {
         for(i=0;i<4;i++) {
@@ -141,14 +181,15 @@ public class FourCross extends AppCompatActivity {
                             number[k-1][i] = -1;
                             changed=true;
                             mergeChecker[k][i] = true;
+                            if(!win && number[k][i] == 2048) {
+                                Toast.makeText(this, "You win", Toast.LENGTH_LONG).show();
+                                win = true;
+                            }
                         }
                     }
                 }
             }
         }
-        setRandom();
-        updateText();
-        setBoolFalse();
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -182,6 +223,10 @@ public class FourCross extends AppCompatActivity {
                 }
                 break;
         }
+        setRandom();
+        updateText();
+        setBoolFalse();
+        checkEndGame();
         return super.onTouchEvent(event);
     }
     @Override
