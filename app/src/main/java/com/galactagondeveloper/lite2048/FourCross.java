@@ -2,6 +2,7 @@ package com.galactagondeveloper.lite2048;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.widget.TextView;
@@ -21,14 +22,19 @@ public class FourCross extends AppCompatActivity {
     int i,j,k;
     boolean changed=true, win=false;
     boolean[][] mergeChecker = new boolean[4][4];
+    SharedPreferences saveState;
+    SharedPreferences.Editor saver;
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        saveState = this.getSharedPreferences("save_state_pref", MODE_PRIVATE);
+        saver = saveState.edit();
+
         setContentView(R.layout.fourcross);
         setValues();
-        setRandom();
-        updateText();
+        loadGameState();
     }
     public void setRandom() {
         if(changed) {
@@ -235,14 +241,23 @@ public class FourCross extends AppCompatActivity {
                 .setTitle("Warning")
                 .setMessage("Are you sure you want to exit?")
                 .setCancelable(true)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Save and exit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        saveGameState();
                         startActivity(new Intent(FourCross.this, MainActivity.class));
                         FourCross.this.finish();
                     }
                 })
-                .setNegativeButton("No", null)
+                .setNeutralButton("No", null)
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        saver.putBoolean("savedLastTime", false).commit();
+                        startActivity(new Intent(FourCross.this, MainActivity.class));
+                        FourCross.this.finish();
+                    }
+                })
                 .show();
     }
     void setValues() {
@@ -273,6 +288,28 @@ public class FourCross extends AppCompatActivity {
         textView[3][3] = findViewById(R.id.t33);
     }
 
+    void saveGameState() {
+        for(i=0;i<4;i++) {
+            for(j=0;j<4;j++) {
+                String key = (Integer.toString(i) + Integer.toString(j));
+                saver.putInt(key, number[i][j]).commit();
+            }
+        }
+        saver.putBoolean("savedLastTime", true).commit();
+    }
+    void loadGameState() {
+        if(saveState.getBoolean("savedLastTime", false)) {
+            for (i = 0; i < 4; i++) {
+                for (j = 0; j < 4; j++) {
+                    String key = (Integer.toString(i) + Integer.toString(j));
+                    number[i][j] = saveState.getInt(key, -1);
+                }
+            }
+        } else {
+            setRandom();
+        }
+        updateText();
+    }
     void setBoolFalse() {
         for(i=0;i<4;i++) {
             for(j=0;j<4;j++) {
